@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgendamentoController;
+use App\Http\Controllers\EvolucaoController;
 use App\Http\Controllers\PessoaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TelaoController;
@@ -43,6 +44,10 @@ Route::middleware('auth')->group(function () {
 
     // Agendamentos
     Route::resource('agendamentos', AgendamentoController::class)->only(['index', 'create', 'store', 'destroy']);
+
+    // Evoluções
+    Route::get('/pessoas/{pessoa}/evolucoes', [EvolucaoController::class, 'index'])->name('evolucoes.index');
+    Route::post('/pessoas/{pessoa}/evolucoes', [EvolucaoController::class, 'store'])->name('evolucoes.store');
 });
 
 require __DIR__.'/auth.php';

@@ -186,14 +186,6 @@
     </div>
 
     <div class="container">
-        <!-- APLICAÇÃO -->
-        <div class="column column-aplicacao">
-            <div class="column-header">💧 Aplicação</div>
-            <div class="column-body" id="col-aplicacao">
-                <div class="empty-message">Aguardando chamados...</div>
-            </div>
-        </div>
-
         <!-- ATENDIMENTO -->
         <div class="column column-atendimento">
             <div class="column-header">🗣️ Atendimento</div>
@@ -201,9 +193,58 @@
                 <div class="empty-message">Aguardando chamados...</div>
             </div>
         </div>
+
+        <!-- APLICAÇÃO -->
+        <div class="column column-aplicacao">
+            <div class="column-header">💧 Aplicação</div>
+            <div class="column-body" id="col-aplicacao">
+                <div class="empty-message">Aguardando chamados...</div>
+            </div>
+        </div>
     </div>
 
     <script>
+        // --- Audio: chime suave com Web Audio API ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioResumed = false;
+
+        // Resume AudioContext on first user interaction (browser policy)
+        document.addEventListener('click', () => {
+            if (!audioResumed) {
+                audioCtx.resume();
+                audioResumed = true;
+            }
+        }, { once: true });
+
+        function playChime() {
+            const now = audioCtx.currentTime;
+
+            // Three-note ascending chime (C5, E5, G5)
+            const notes = [523.25, 659.25, 783.99];
+            notes.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+
+                // Soft envelope
+                gain.gain.setValueAtTime(0, now + i * 0.15);
+                gain.gain.linearRampToValueAtTime(0.3, now + i * 0.15 + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.8);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now + i * 0.15);
+                osc.stop(now + i * 0.15 + 0.8);
+            });
+        }
+
+        // --- Track previous chamado IDs ---
+        let previousChamadoIds = new Set();
+        let isFirstLoad = true;
+
         function updateClock() {
             const now = new Date();
             document.getElementById('clock').textContent = now.toLocaleTimeString('pt-BR');
@@ -216,6 +257,23 @@
                 .then(data => {
                     const aplicacao = data.chamados.filter(c => c.tipo_raw === 'APLICACAO');
                     const atendimento = data.chamados.filter(c => c.tipo_raw === 'ATENDIMENTO');
+
+                    // Detect new CHAMADO entries
+                    const currentChamadoIds = new Set(
+                        data.chamados
+                            .filter(c => c.status === 'CHAMADO')
+                            .map(c => c.id || c.nome + c.hora)
+                    );
+
+                    if (!isFirstLoad) {
+                        const hasNew = [...currentChamadoIds].some(id => !previousChamadoIds.has(id));
+                        if (hasNew) {
+                            playChime();
+                        }
+                    }
+
+                    previousChamadoIds = currentChamadoIds;
+                    isFirstLoad = false;
 
                     renderColumn('col-aplicacao', aplicacao);
                     renderColumn('col-atendimento', atendimento);

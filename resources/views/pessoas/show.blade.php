@@ -5,6 +5,9 @@
                 {{ $pessoa->nome_completo }}
                 <span class="text-sm font-normal text-indigo-600 bg-indigo-100 px-2 py-1 rounded-full ml-2">{{ $pessoa->codigo }}</span>
             </h2>
+            <a href="{{ route('evolucoes.index', $pessoa) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 transition mr-2">
+                📈 Evolução
+            </a>
             <a href="{{ route('pessoas.edit', $pessoa) }}" class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-600 transition">
                 Editar
             </a>

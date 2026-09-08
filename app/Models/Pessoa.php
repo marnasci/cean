@@ -53,6 +53,11 @@ class Pessoa extends Model
         return $this->hasMany(Agendamento::class);
     }
 
+    public function evolucoes(): HasMany
+    {
+        return $this->hasMany(Evolucao::class);
+    }
+
     public function getIdadeAttribute(): ?int
     {
         return $this->data_nascimento?->age;
